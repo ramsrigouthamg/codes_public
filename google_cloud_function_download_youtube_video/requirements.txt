@@ -1,0 +1,5 @@
+# Function dependencies, for example:
+# package>=version
+pytube
+google-cloud-storage
+moviepy
