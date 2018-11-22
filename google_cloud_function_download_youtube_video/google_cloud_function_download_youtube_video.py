@@ -5,11 +5,12 @@ from google.cloud import storage
 from moviepy.editor import VideoFileClip
 
 
-# Rename this with the google cloud bucket name you have created
+# Rename this with the google cloud bucket name you have created.
 gcloud_bucket_name = "original_audio_video"
 storage_client = storage.Client()
 bucket = storage_client.get_bucket(gcloud_bucket_name)
 
+# Check if the Youtube video exists already in the gcloud storage bucket
 def file_exists(filepath):
   fname = filepath.split('/')[-1]
   val = bucket.get_blob(fname)
@@ -18,6 +19,8 @@ def file_exists(filepath):
   else:
       return False
 
+# Extract just the ide from the Youtube url. Eg: https://www.youtube.com/watch?v=EUYpKwgqi1M
+# Then "EUYpKwgqi1M" is returned
 def get_id(url):
     u_pars = urlparse(url)
     quer_v = parse_qs(u_pars.query).get('v')
@@ -28,9 +31,8 @@ def get_id(url):
         return pth[-1]
 
 
-
+# Upload file to the bucket.
 def upload_blob( source_file_name, destination_blob_name):
-    """Uploads a file to the bucket."""
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
 
@@ -38,7 +40,7 @@ def upload_blob( source_file_name, destination_blob_name):
         source_file_name,
         destination_blob_name))
 
-
+# Download Youtube video from Url
 def download_url(youtube_url, id):
     yt = YouTube(youtube_url)
     path = '/tmp/'
@@ -80,6 +82,8 @@ def download_video(request):
             print(video_filename, " doesn't exists")
 
         videoclip = VideoFileClip(video_filename)
+        # Convert stereo audio to mono audio with ffmpeg.
+        # FFmpeg is automatically downloaded when moviepy is called. We don't need to install it.
         videoclip.audio.write_audiofile(audio_file_name, ffmpeg_params=['-ac', '1'])
 
         upload_blob( video_filename, video_filename.split('/')[-1])
